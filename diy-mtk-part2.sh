@@ -20,6 +20,10 @@ unzip OldPackages.zip
 cp -r packages-057aca5ae5c63e9fe545b07045ed24624bbad950/net/bind feeds/packages/net/
 rm -rf OldPackages.zip packages-057aca5ae5c63e9fe545b07045ed24624bbad950
 
+# 升级大雕的rust源码到官方最新版本1.86.0
+sed -i 's/PKG_VERSION:=1.85.1/PKG_VERSION:=1.86.0/' feeds/packages/lang/rust/Makefile
+sed -i 's/PKG_HASH:=0f2995ca083598757a8d9a293939e569b035799e070f419a686b0996fb94238a/PKG_HASH:=022a27286df67900a044d227d9db69d4732ec3d833e4ffc259c4425ed71eed80/' feeds/packages/lang/rust/Makefile
+
 # 移除 openwrt feeds 自带的番茄核心包
 rm -rf feeds/packages/net/xray-core
 rm -rf feeds/packages/net/v2ray-geodata
