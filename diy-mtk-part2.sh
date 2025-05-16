@@ -13,6 +13,15 @@
 # 替换默认IP
 sed -i 's#192.168.1.1#192.168.0.1#g' package/base-files/files/bin/config_generate
 
+# 拷贝musl的静态库
+wget https://archive.openwrt.org/releases/24.10.0/targets/mediatek/mt7622/openwrt-toolchain-24.10.0-mediatek-mt7622_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+tar --use-compress-program=unzstd -xvf openwrt-toolchain-24.10.0-mediatek-mt7622_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+mkdir -p staging_dir/target-aarch64_cortex-a53_musl/lib
+cp -a openwrt-toolchain-24.10.0-mediatek-mt7622_gcc-13.3.0_musl.Linux-x86_64/toolchain-aarch64_cortex-a53_gcc-13.3.0_musl/lib/. \
+      /home/runner/work/Actions-AX6S-OpenWrt/Actions-AX6S-OpenWrt/openwrt/staging_dir/target-aarch64_cortex-a53_musl/lib/
+rm openwrt-toolchain-24.10.0-mediatek-mt7622_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+rm -rf openwrt-toolchain-24.10.0-mediatek-mt7622_gcc-13.3.0_musl.Linux-x86_64
+
 # 替换bind
 rm -rf feeds/packages/net/bind
 wget https://github.com/coolsnowwolf/packages/archive/057aca5ae5c63e9fe545b07045ed24624bbad950.zip -O OldPackages.zip
