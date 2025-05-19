@@ -136,6 +136,11 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
+    - name: Compile toolchain
+      run: |
+        cd openwrt
+        make toolchain/install -j$(nproc)
+    
     - name: Download package
       id: package
       run: |
@@ -144,7 +149,7 @@ jobs:
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-
+    
     - name: Fix libc.a path for musl (Rust)
       run: |
         set -x
