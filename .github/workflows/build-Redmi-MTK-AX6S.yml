@@ -121,6 +121,22 @@ jobs:
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
 
+    - name: Fix libc.a path for musl (Rust)
+      run: |
+        set -x
+        cd openwrt
+        TOOLCHAIN_DIR=$(find staging_dir/toolchain-*musl* -maxdepth 0 | head -n 1)
+        if [ -n "$TOOLCHAIN_DIR" ]; then
+          if [ ! -f "$TOOLCHAIN_DIR/lib/libc.a" ] && [ -f "$TOOLCHAIN_DIR/usr/lib/libc.a" ]; then
+            ln -s ../usr/lib/libc.a "$TOOLCHAIN_DIR/lib/libc.a"
+            echo "Created symlink for libc.a in $TOOLCHAIN_DIR/lib"
+          else
+            echo "libc.a already exists or not found in usr/lib"
+          fi
+        else
+          echo "No musl toolchain dir found"
+        fi
+
     - name: Load custom configuration
       run: |
         [ -e files ] && mv files openwrt/files
