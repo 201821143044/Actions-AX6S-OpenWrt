@@ -161,8 +161,11 @@ jobs:
         cd openwrt
         toolchain_dir=$(find staging_dir -type d -name "toolchain-*musl" | head -n1)
         libc_file="$toolchain_dir/lib/libc.a"
-        [ -f "$libc_file" ] || { echo "!!! libc.a not found"; exit 1; }
-        cp -av "$libc_file" "$toolchain_dir/lib/"
+        if [ ! -f "$libc_file" ]; then
+          echo "!!! libc.a not found"
+          exit 1
+        fi
+        echo "libc.a found at $libc_file"
 
     - name: Debug:List musl-root config and libc.a
       run: |
