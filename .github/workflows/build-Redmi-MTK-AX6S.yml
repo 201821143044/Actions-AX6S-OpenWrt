@@ -150,41 +150,28 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
     
-    - name: Patch libc.a for Rust bootstrap (redundant all-in-one)
+    - name: Patch Rust musl-root in Makefile
       run: |
-        cd openwrt
-        echo "=== 开始查找并补丁所有 build_dir 下 musl/lib 路径 ==="
-        find build_dir -type d -path "*/musl/lib" | tee /tmp/musl_lib_dirs.txt
-        cat /tmp/musl_lib_dirs.txt
-        found_libc=""
-        for toolchain in staging_dir/toolchain-*_musl/lib/libc.a; do
-          if [ -f "$toolchain" ]; then
-            found_libc="$toolchain"
-            break
-          fi
-        done
-        if [ -z "$found_libc" ]; then
-          echo "!!! 未找到 toolchain 下 libc.a，musl 工具链有问题，编译 Rust 一定会失败。"
-          exit 1
-        fi
-        for d in $(cat /tmp/musl_lib_dirs.txt); do
-          cp -av "$found_libc" "$d/" && echo "patched $d"
-          ls -lh "$d"
-        done
-        echo "=== libc.a 补丁已完成 ==="
+        grep -q 'musl-root' openwrt/feeds/packages/lang/rust/Makefile || \
+        sed -i '/^HOST_CONFIGURE_ARGS\s*=.*/a\  --set=target.aarch64-unknown-linux-musl.musl-root=$(TOOLCHAIN_DIR) \\' openwrt/feeds/packages/lang/rust/Makefile
+        grep musl-root openwrt/feeds/packages/lang/rust/Makefile || true
 
-    - name: Debug:List all musl/lib and libc.a
+    - name: Patch libc.a for Rust (精准补库)
       run: |
         cd openwrt
-        echo '========== [DEBUG] 所有musl/lib目录内容 =========='
-        find build_dir -type d -name musl | xargs -I{} ls -lR {} || true
-        echo '========== [DEBUG] 所有libc.a分布 =========='
-        find build_dir -name libc.a | xargs ls -lh || true
-        echo '========== [DEBUG] rustc源码/host相关lib路径 =========='
-        find build_dir -type d -name rustc-1.86.0-src | xargs -I{} ls -lR {}
-        echo '========== [DEBUG] lang/rust config.toml =========='
+        toolchain_dir=$(find staging_dir -type d -name "toolchain-*musl" | head -n1)
+        libc_file="$toolchain_dir/lib/libc.a"
+        [ -f "$libc_file" ] || { echo "!!! libc.a not found"; exit 1; }
+        cp -av "$libc_file" "$toolchain_dir/lib/"
+
+    - name: Debug:List musl-root config and libc.a
+      run: |
+        cd openwrt
+        # 显示 musl-root
         find build_dir -type f -name config.toml | xargs grep musl || true
-
+        # 显示 libc.a 分布
+        find build_dir -name libc.a | xargs ls -lh || true
+        
     - name: Compile the firmware
       id: compile
       run: |
