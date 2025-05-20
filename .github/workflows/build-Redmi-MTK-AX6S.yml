@@ -172,29 +172,35 @@ jobs:
           ls -lh "$d"
         done
         echo "=== libc.a 补丁已完成 ==="
-        
-    - name: Compile the firmware (with pre-make patch)
+
+    - name: Debug:List all musl/lib and libc.a
+      run: |
+        cd openwrt
+        echo '========== [DEBUG] 所有musl/lib目录内容 =========='
+        find build_dir -type d -name musl | xargs -I{} ls -lR {} || true
+        echo '========== [DEBUG] 所有libc.a分布 =========='
+        find build_dir -name libc.a | xargs ls -lh || true
+        echo '========== [DEBUG] rustc源码/host相关lib路径 =========='
+        find build_dir -type d -name rustc-1.86.0-src | xargs -I{} ls -lR {}
+        echo '========== [DEBUG] lang/rust config.toml =========='
+        find build_dir -type f -name config.toml | xargs grep musl || true
+
+    - name: Compile the firmware
       id: compile
       run: |
         cd openwrt
-        echo "=== make前补一次所有 build_dir 下 musl/lib 路径 ==="
-        find build_dir -type d -path "*/musl/lib" | tee /tmp/musl_lib_dirs.txt
-        found_libc=""
-        for toolchain in staging_dir/toolchain-*_musl/lib/libc.a; do
-          if [ -f "$toolchain" ]; then
-            found_libc="$toolchain"
-            break
-          fi
-        done
-        for d in $(cat /tmp/musl_lib_dirs.txt); do
-          cp -av "$found_libc" "$d/" && echo "patched $d"
-        done
+        echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
+    - name: On failure:list all libc.a
+      if: failure()
+      run: |
+        cd openwrt
+        find build_dir -name libc.a | xargs ls -lh || true
     - name: Check space usage
       if: (!cancelled())
       run: df -hT
