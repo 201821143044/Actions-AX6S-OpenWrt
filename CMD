@@ -3,8 +3,8 @@ git clone -b master --single-branch --filter=blob:none https://github.com/immort
 cd immortalwrt
 
 echo "src-git helloworld https://github.com/fw876/helloworld.git" >> "feeds.conf.default"
-echo "src-git PWpackages https://github.com/xiaorouji/openwrt-passwall.git;packages" >> "feeds.conf.default"
-echo "src-git PWluci https://github.com/xiaorouji/openwrt-passwall.git;luci" >> "feeds.conf.default"
+echo "src-git PWpackages https://github.com/xiaorouji/openwrt-passwall.git" >> "feeds.conf.default"
+echo "src-git PWluci https://github.com/xiaorouji/openwrt-passwall.git" >> "feeds.conf.default"
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
