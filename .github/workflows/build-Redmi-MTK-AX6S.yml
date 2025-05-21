@@ -20,8 +20,8 @@ on:
         default: 'false'
 
 env:
-  REPO_URL: https://github.com/201821143044/lede-R24.4.4-MTK
-  REPO_BRANCH: mtksdk
+  REPO_URL: https://github.com/immortalwrt/immortalwrt
+  REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Redmi-mtk-AX6S.config
   DIY_P1_SH: diy-mtk-part1.sh
